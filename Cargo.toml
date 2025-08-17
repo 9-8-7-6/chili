@@ -1,0 +1,8 @@
+[package]
+name = "chili"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dotenv = "0.15.0"
+lettre = { version = "0.11.18", features = ["smtp-transport", "sendmail-transport", "file-transport", "builder", "tokio1", "tracing", "tokio1-native-tls"] }
