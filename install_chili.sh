@@ -83,6 +83,37 @@ echo "==> 5/6 Reload systemd, enable & start"
 sudo systemctl daemon-reload
 sudo systemctl enable --now "${APP_NAME}.service"
 
+echo "==> (optional) Install user service for current user"
+USER_UNIT_DIR="${HOME}/.config/systemd/user"
+USER_UNIT_FILE="${USER_UNIT_DIR}/chili-user.service"
+mkdir -p "${USER_UNIT_DIR}"
+cat > "${USER_UNIT_FILE}" <<'UNIT'
+[Unit]
+Description=chili user daemon (runs when this user logs in)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/chili/chili
+WorkingDirectory=/opt/chili
+EnvironmentFile=-/opt/chili/.env
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/chili
+
+[Install]
+WantedBy=default.target
+UNIT
+
+systemctl --user daemon-reload || true
+systemctl --user enable --now chili-user.service || true
+echo "User service installed for $(whoami). Check with: systemctl --user status chili-user.service"
+
 echo "==> 6/6 Done"
 echo "Check status:     sudo systemctl status ${APP_NAME}"
 echo "Follow logs:      journalctl -u ${APP_NAME} -f"
